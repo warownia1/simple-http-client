@@ -2,10 +2,10 @@ package simplehttpclient.impl;
 
 import simplehttpclient.HttpRequest;
 
-public class EmptyRequestBody implements HttpRequest.Body
-{
+public class EmptyRequestBody implements HttpRequest.Body {
+
   public static final EmptyRequestBody instance = new EmptyRequestBody();
-  public static final byte[] body = new byte[0];
+  private static final byte[] body = new byte[0];
 
   public static HttpRequest.Body getInstance() {
     return instance;
@@ -17,8 +17,7 @@ public class EmptyRequestBody implements HttpRequest.Body
   }
 
   @Override
-  public long contentLength()
-  {
+  public long contentLength() {
     return 0;
   }
 

@@ -2,8 +2,8 @@ package simplehttpclient.impl;
 
 import simplehttpclient.HttpRequest;
 
-public class ByteArrayRequestBody implements HttpRequest.Body
-{
+public class ByteArrayRequestBody implements HttpRequest.Body {
+
   private final int length;
   private final byte[] content;
   private final int offset;
@@ -26,9 +26,8 @@ public class ByteArrayRequestBody implements HttpRequest.Body
   }
 
   @Override
-  public long contentLength()
-  {
-     return length;
+  public long contentLength() {
+    return length;
   }
 
 }

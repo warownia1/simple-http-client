@@ -1,42 +1,54 @@
 package simplehttpclient;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.Optional;
 
 import simplehttpclient.impl.SimpleHttpRequestBuilder;
 
-public interface HttpRequest
-{
+public abstract class HttpRequest {
+
   public interface Builder {
-    public Builder uri(URI uri);
-    public Builder header(String name, String value);
-    public Builder HEAD();
-    public Builder GET();
-    public Builder POST(Body body);
-    public Builder PUT(Body body);
-    public Builder DELETE();
-    public Builder method(String method, Body body);
-    public HttpRequest build();
+    Builder uri(URI uri);
+
+    Builder header(String name, String value);
+
+    Builder HEAD();
+
+    Builder GET();
+
+    Builder POST(Body body);
+
+    Builder PUT(Body body);
+
+    Builder DELETE();
+
+    Builder method(String method, Body body);
+
+    HttpRequest build();
   }
 
   public interface Body {
     byte[] getBytes();
+
     long contentLength();
   }
 
   public static Builder newBuilder(URI uri) {
-    return new SimpleHttpRequestBuilder().uri(uri);
+    return newBuilder().uri(uri);
   }
 
   public static Builder newBuilder() {
     return new SimpleHttpRequestBuilder();
   }
 
-  public Optional<Body> body();
+  public abstract Optional<Body> body();
 
-  public String method();
+  public abstract String method();
 
-  public URI uri();
+  public abstract URI uri();
 
-  public HttpHeaders headers();
+  public abstract HttpHeaders headers();
+
+  public abstract Optional<Duration> timeout();
 }

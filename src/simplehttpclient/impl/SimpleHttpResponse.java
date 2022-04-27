@@ -6,8 +6,8 @@ import simplehttpclient.HttpHeaders;
 import simplehttpclient.HttpRequest;
 import simplehttpclient.HttpResponse;
 
-public class SimpleHttpResponse<T> implements HttpResponse<T>
-{
+public class SimpleHttpResponse<T> implements HttpResponse<T> {
+
   private final int statusCode;
   private final HttpRequest request;
   private final HttpHeaders headers;
@@ -24,32 +24,27 @@ public class SimpleHttpResponse<T> implements HttpResponse<T>
   }
 
   @Override
-  public int statusCode()
-  {
+  public int statusCode() {
     return statusCode;
   }
 
   @Override
-  public HttpRequest request()
-  {
+  public HttpRequest request() {
     return request;
   }
 
   @Override
-  public HttpHeaders headers()
-  {
+  public HttpHeaders headers() {
     return headers;
   }
 
   @Override
-  public T body()
-  {
+  public T body() {
     return body;
   }
 
   @Override
-  public URI uri()
-  {
+  public URI uri() {
     return uri;
   }
 

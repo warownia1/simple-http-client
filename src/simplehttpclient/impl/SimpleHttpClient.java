@@ -20,7 +20,6 @@ public class SimpleHttpClient implements HttpClient {
   @Override
   public <T> HttpResponse<T> send(HttpRequest request, BodyHandler<T> handler)
       throws IOException {
-    URL url = request.uri().toURL();
     HttpURLConnection conn = (HttpURLConnection) request.uri().toURL().openConnection();
     if (!request.method().equals("HEAD")) {
       conn.setDoInput(true);
@@ -50,7 +49,7 @@ public class SimpleHttpClient implements HttpClient {
     T body = handler.apply(conn.getInputStream());
     URI uri;
     try {
-       uri = conn.getURL().toURI();
+      uri = conn.getURL().toURI();
     }
     catch (URISyntaxException e) {
       e.printStackTrace();
@@ -60,9 +59,8 @@ public class SimpleHttpClient implements HttpClient {
   }
 
   @Override
-  public <T> CompletableFuture<HttpResponse<T>> sendAsync(
-      HttpRequest request, BodyHandler<T> handler,
-      Executor executor) {
+  public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest request,
+      BodyHandler<T> handler, Executor executor) {
     // TODO Auto-generated method stub
     return null;
   }

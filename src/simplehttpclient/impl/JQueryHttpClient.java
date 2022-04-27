@@ -3,6 +3,7 @@ package simplehttpclient.impl;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -12,35 +13,32 @@ import simplehttpclient.HttpRequest;
 import simplehttpclient.HttpResponse;
 import simplehttpclient.HttpResponse.BodyHandler;
 
-public class JQueryHttpClient implements HttpClient
-{
+public class JQueryHttpClient implements HttpClient {
 
   @Override
   public <T> HttpResponse<T> send(HttpRequest request, BodyHandler<T> handler)
-  throws IOException
-  {
+      throws IOException {
     Object jqXHR = doAjax(request, false);
-    return resposneFromJqXHR(request, handler, jqXHR);
+    return responseFromJqXHR(request, handler, jqXHR);
   }
 
   @FunctionalInterface
   interface AjaxDoneConsumer {
-    public void accept(String data, String textStatus, Object jqXHR);
+    void accept(String data, String textStatus, Object jqXHR);
   }
 
   @FunctionalInterface
   interface AjaxFailConsumer {
-    public void accept(Object jqXHR, String textStatus, String errorThrown);
+    void accept(Object jqXHR, String textStatus, String errorThrown);
   }
 
   @Override
-  public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest request,
-      BodyHandler<T> handler, Executor executor)
-  {
+  public <T> CompletableFuture<HttpResponse<T>> sendAsync(
+      HttpRequest request, BodyHandler<T> handler, Executor executor) {
     final var responseFuture = new CompletableFuture<HttpResponse<T>>();
     AjaxDoneConsumer doneConsumer = (data, textStatus, jqXHR) -> {
       try {
-        HttpResponse<T> response = resposneFromJqXHR(request, handler, jqXHR);
+        HttpResponse<T> response = responseFromJqXHR(request, handler, jqXHR);
         responseFuture.complete(response);
       }
       catch (Exception e) {
@@ -48,10 +46,10 @@ public class JQueryHttpClient implements HttpClient
       }
     };
     AjaxFailConsumer failConsumer = (jqXHR, textStatus, errorThrown) -> {
-      int status = /** @j2sNative jqXHR.status || */ 0;
+      int status = /** @j2sNative jqXHR.status || */0;
       if (status > 0) {
         try {
-          HttpResponse<T> response = resposneFromJqXHR(request, handler, jqXHR);
+          HttpResponse<T> response = responseFromJqXHR(request, handler, jqXHR);
           responseFuture.complete(response);
         }
         catch (Exception e) {
@@ -70,11 +68,11 @@ public class JQueryHttpClient implements HttpClient
     return responseFuture;
   }
 
-  private <T> HttpResponse<T> resposneFromJqXHR(HttpRequest request,
-      BodyHandler<T> handler, Object jqXHR) throws IOException {
-    int statusCode = /** @j2sNative jqXHR.status || */ 0;
+  private <T> HttpResponse<T> responseFromJqXHR(
+      HttpRequest request, BodyHandler<T> handler, Object jqXHR) throws IOException {
+    int statusCode = /** @j2sNative jqXHR.status || */0;
     HttpHeadersBuilder responseHeaders = new HttpHeadersBuilder();
-    String allHeadersText = /** @j2sNative jqXHR.getAllResponseHeaders() || */ "";
+    String allHeadersText = /** @j2sNative jqXHR.getAllResponseHeaders() || */"";
     for (String line : allHeadersText.split("\\n")) {
       int idx = line.indexOf(':');
       if (idx < 0) continue;
@@ -82,21 +80,21 @@ public class JQueryHttpClient implements HttpClient
       for (String value : line.substring(idx + 1).trim().split(",")) {
         responseHeaders.addHeader(header, value.trim());
       }
-    };
-    String responseText = /** @j2sNative jqXHR.responseText || */ "";
-    InputStream stream = new ByteArrayInputStream(responseText.getBytes("UTF-8"));
-    return new SimpleHttpResponse<T>(
+    }
+    String responseText = /** @j2sNative jqXHR.responseText || */"";
+    InputStream stream = new ByteArrayInputStream(responseText.getBytes(StandardCharsets.UTF_8));
+    return new SimpleHttpResponse<>(
         statusCode, request, responseHeaders.build(), handler.apply(stream),
         request.uri()
-        );
+    );
   }
 
 
   private Object doAjax(HttpRequest request, boolean async) {
     String url = request.uri().toString();
     String method = request.method();
-    Object headers = /** @j2sNative {} || */ null;
-    for (Map.Entry entry: request.headers().map().entrySet()) {
+    Object headers = /** @j2sNative {} || */null;
+    for (Map.Entry entry : request.headers().map().entrySet()) {
       /** @j2sNative
        * headers[entry.getKey$()] = entry.getValue$().toArray$();
        */

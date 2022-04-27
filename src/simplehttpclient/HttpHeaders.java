@@ -9,36 +9,40 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 
-public final class HttpHeaders
-{
-  private Map<String, List<String>> headers;
+import static java.util.Collections.unmodifiableList;
+import static java.util.Collections.unmodifiableMap;
+import static java.util.Objects.requireNonNull;
+
+public final class HttpHeaders {
+
+  private final Map<String, List<String>> headers;
 
   private HttpHeaders(Map<String, List<String>> headers) {
     this.headers = headers;
   }
 
   public static HttpHeaders of(Map<String, List<String>> map) {
-    Objects.requireNonNull(map);
+    requireNonNull(map);
     TreeMap<String, List<String>> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-    map.forEach((key, valuesList) -> {
-      String headerName = Objects.requireNonNull(key, "Header names must not be null").trim();
+    map.forEach((key, value) -> {
+      String headerName = requireNonNull(key, "header name").trim();
       if (headerName.isEmpty()) {
-        throw new IllegalArgumentException("Empty header name");
+        throw new IllegalArgumentException("empty header name");
       }
-      Objects.requireNonNull(valuesList, "Header values must not be null");
+      requireNonNull(value, "header values");
       ArrayList<String> headerValues = new ArrayList<>(1);
-      for (String headerValue : valuesList) {
-        headerValue = Objects.requireNonNull(headerValue).trim();
+      for (String headerValue : value) {
+        headerValue = requireNonNull(headerValue, "header value").trim();
         headerValues.add(headerValue);
       }
       if (!headerValues.isEmpty()) {
         if (headers.containsKey(headerName)) {
-          throw new IllegalArgumentException("Duplicate header: " + headerName);
+          throw new IllegalArgumentException("duplicate header: " + headerName);
         }
-        headers.put(headerName, Collections.unmodifiableList(headerValues));
+        headers.put(headerName, unmodifiableList(headerValues));
       }
     });
-    return new HttpHeaders(Collections.unmodifiableMap(headers));
+    return new HttpHeaders(unmodifiableMap(headers));
   }
 
   public Map<String, List<String>> map() {
@@ -46,7 +50,7 @@ public final class HttpHeaders
   }
 
   public List<String> allValues(String name) {
-    Objects.requireNonNull(name);
+    requireNonNull(name);
     List<String> values = headers.get(name);
     return values != null ? values : Collections.emptyList();
   }
@@ -55,9 +59,5 @@ public final class HttpHeaders
     List<String> values = allValues(name);
     if (values.isEmpty()) return Optional.empty();
     else return Optional.ofNullable(values.get(0));
-  }
-
-  public Collection<String> allHeaders() {
-    return headers.keySet();
   }
 }
