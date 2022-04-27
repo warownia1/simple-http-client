@@ -1,19 +1,18 @@
 package simplehttpclient.impl;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-
 import simplehttpclient.HttpClient;
 import simplehttpclient.HttpHeaders;
 import simplehttpclient.HttpRequest;
 import simplehttpclient.HttpResponse;
 import simplehttpclient.HttpResponse.BodyHandler;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 public class SimpleHttpClient implements HttpClient {
 
@@ -37,6 +36,11 @@ public class SimpleHttpClient implements HttpClient {
     }
     else {
       conn.setRequestProperty("Content-Length", "0");
+    }
+    if (request.timeout().isPresent()) {
+      int timeoutMillis = (int) Math.min(request.timeout().get().toMillis(), Integer.MAX_VALUE);
+      conn.setConnectTimeout(timeoutMillis);
+      conn.setReadTimeout(timeoutMillis);
     }
     conn.connect();
     if (request.body().isPresent()) {

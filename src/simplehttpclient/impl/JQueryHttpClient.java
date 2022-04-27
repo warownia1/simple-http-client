@@ -1,5 +1,10 @@
 package simplehttpclient.impl;
 
+import simplehttpclient.HttpClient;
+import simplehttpclient.HttpRequest;
+import simplehttpclient.HttpResponse;
+import simplehttpclient.HttpResponse.BodyHandler;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,11 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-
-import simplehttpclient.HttpClient;
-import simplehttpclient.HttpRequest;
-import simplehttpclient.HttpResponse;
-import simplehttpclient.HttpResponse.BodyHandler;
 
 public class JQueryHttpClient implements HttpClient {
 
@@ -103,6 +103,10 @@ public class JQueryHttpClient implements HttpClient {
     if (request.body().isPresent()) {
       data = request.body().get().getBytes();
     }
+    long timeout = 0;
+    if (request.timeout().isPresent()) {
+      timeout = request.timeout().get().toMillis();
+    }
     /** @j2sNative
      * return jQuery.ajax(url, {
      *  async: async,
@@ -111,7 +115,8 @@ public class JQueryHttpClient implements HttpClient {
      *  dataType: "text",
      *  headers: headers,
      *  method: method,
-     *  processData: false
+     *  processData: false,
+     *  timeout: timeout
      * })
      */
     {
