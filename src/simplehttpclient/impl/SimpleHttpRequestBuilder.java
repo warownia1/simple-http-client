@@ -18,6 +18,7 @@ public class SimpleHttpRequestBuilder implements HttpRequest.Builder {
   HttpRequest.Body body = EmptyRequestBody.getInstance();
   Duration timeout;
 
+  @Override
   public SimpleHttpRequestBuilder uri(URI uri) {
     requireNonNull(uri);
     checkURI(uri);
@@ -36,6 +37,7 @@ public class SimpleHttpRequestBuilder implements HttpRequest.Builder {
       throw new IllegalArgumentException(format("unsupported URI %s", uri));
   }
 
+  @Override
   public SimpleHttpRequestBuilder header(String name, String value) {
     requireNonNull(name);
     requireNonNull(value);
@@ -43,28 +45,34 @@ public class SimpleHttpRequestBuilder implements HttpRequest.Builder {
     return this;
   }
 
+  @Override
   public SimpleHttpRequestBuilder HEAD() {
     return method("HEAD", EmptyRequestBody.getInstance());
   }
 
+  @Override
   public SimpleHttpRequestBuilder GET() {
     return method("GET", EmptyRequestBody.getInstance());
   }
 
+  @Override
   public SimpleHttpRequestBuilder POST(HttpRequest.Body body) {
     Objects.requireNonNull(body);
     return method("POST", body);
   }
 
+  @Override
   public SimpleHttpRequestBuilder PUT(HttpRequest.Body body) {
     Objects.requireNonNull(body);
     return method("PUT", body);
   }
 
+  @Override
   public SimpleHttpRequestBuilder DELETE() {
     return method("DELETE", EmptyRequestBody.getInstance());
   }
 
+  @Override
   public SimpleHttpRequestBuilder method(String method, HttpRequest.Body body) {
     Objects.requireNonNull(method);
     if (method.equals(""))
@@ -74,6 +82,7 @@ public class SimpleHttpRequestBuilder implements HttpRequest.Builder {
     return this;
   }
 
+  @Override
   public SimpleHttpRequestBuilder timeout(Duration duration) {
     if (duration == null) {
       this.timeout = null;

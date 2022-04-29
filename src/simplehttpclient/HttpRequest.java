@@ -25,6 +25,8 @@ public abstract class HttpRequest {
 
     Builder method(String method, Body body);
 
+    Builder timeout(Duration duration);
+
     HttpRequest build();
   }
 
