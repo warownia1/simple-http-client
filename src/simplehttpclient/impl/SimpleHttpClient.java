@@ -12,7 +12,9 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
 public class SimpleHttpClient implements HttpClient {
 
@@ -65,8 +67,15 @@ public class SimpleHttpClient implements HttpClient {
   @Override
   public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest request,
       BodyHandler<T> handler, Executor executor) {
-    // TODO Auto-generated method stub
-    return null;
+    Supplier<HttpResponse<T>> supplier = () -> {
+      try {
+        return send(request, handler);
+      }
+      catch (IOException e) {
+        throw new CompletionException(e);
+      }
+    };
+    return CompletableFuture.supplyAsync(supplier, executor);
   }
 
 }
