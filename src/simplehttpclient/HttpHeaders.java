@@ -60,4 +60,9 @@ public final class HttpHeaders {
     if (values.isEmpty()) return Optional.empty();
     else return Optional.ofNullable(values.get(0));
   }
+
+  @Override
+  public String toString() {
+    return super.toString() + " { " + map() + " }";
+  }
 }
