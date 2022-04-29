@@ -97,6 +97,6 @@ public class SimpleHttpRequestBuilder implements HttpRequest.Builder {
 
   @Override
   public ImmutableHttpRequest build() {
-    return null;
+    return new ImmutableHttpRequest(this);
   }
 }
