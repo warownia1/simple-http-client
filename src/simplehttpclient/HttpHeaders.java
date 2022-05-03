@@ -31,14 +31,7 @@
 
 package simplehttpclient;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
 
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
@@ -90,6 +83,28 @@ public final class HttpHeaders {
     List<String> values = allValues(name);
     if (values.isEmpty()) return Optional.empty();
     else return Optional.ofNullable(values.get(0));
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof HttpHeaders))
+      return false;
+    return this.map().equals(((HttpHeaders) obj).map());
+  }
+
+  @Override
+  public int hashCode() {
+    int h = 0;
+    for (Map.Entry<String, List<String>> e : map().entrySet()) {
+      h += entryHash(e);
+    }
+    return h;
+  }
+
+  private static int entryHash(Map.Entry<String, List<String>> e) {
+    int keyHash = e.getKey().toLowerCase(Locale.ROOT).hashCode();
+    int valHash = e.getValue().hashCode();
+    return keyHash ^ valHash;
   }
 
   @Override
