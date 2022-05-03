@@ -46,6 +46,15 @@ public class HttpHeadersBuilder {
   private final TreeMap<String, List<String>> headers =
       new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
+  public HttpHeadersBuilder structuralCopy() {
+    HttpHeadersBuilder builder = new HttpHeadersBuilder();
+    for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+      List<String> valuesCopy = new ArrayList<>(entry.getValue());
+      builder.headers.put(entry.getKey(), valuesCopy);
+    }
+    return builder;
+  }
+
   public void addHeader(String name, String value) {
     headers.computeIfAbsent(name, k -> new ArrayList<>(1))
         .add(value);
