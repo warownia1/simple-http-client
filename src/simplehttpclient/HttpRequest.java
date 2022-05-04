@@ -31,33 +31,140 @@
 
 package simplehttpclient;
 
+import simplehttpclient.impl.SimpleHttpRequestBuilder;
+
 import java.net.URI;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.Executor;
 
-import simplehttpclient.impl.SimpleHttpRequestBuilder;
-
+/**
+ * An HTTP request.
+ *
+ * <p> An {@code HttpRequest} instance is built through an {@code HttpRequest}
+ * {@linkplain HttpRequest.Builder builder}. An {@code HttpRequest} builder is obtained from
+ * one of the {@link HttpRequest#newBuilder(URI) newBuilder} methods. A request's
+ * {@link URI}, headers, and body can be set. Request bodies are provided through a
+ * {@link Body} supplied to one of the {@link Builder#POST(Body) POST},
+ * {@link Builder#PUT(Body) PUT} or {@link Builder#method(String, Body) method} methods.
+ * Once all required parameters have been set in the builder, {@link Builder#build() build}
+ * will return the {@code HttpRequest}. Builders can be copied and modified many times in
+ * order to build multiple related requests that differ in some parameters.
+ *
+ * <p> The following is an example of a GET request that prints the response
+ * body as a String:
+ *
+ * <pre>{@code    HttpClient client = HttpClient.newHttpClient();
+ *   HttpRequest request = HttpRequest.newBuilder()
+ *         .uri(URI.create("http://foo.com/"))
+ *         .build();
+ *   client.sendAsync(request, BodyHandlers.ofString())
+ *         .thenApply(HttpResponse::body)
+ *         .thenAccept(System.out::println)
+ *         .join(); }</pre>
+ */
 public abstract class HttpRequest {
 
   public interface Builder {
+    /**
+     * Sets this {@code HttpRequest}'s request {@code URI}.
+     *
+     * @param uri the request URI
+     * @return this builder
+     * @throws IllegalArgumentException if the {@code URI} scheme is not supported
+     */
     Builder uri(URI uri);
 
+    /**
+     * Adds the given name value pair to the set of headers for this request. The given
+     * value is added to the list of values for that name.
+     *
+     * @param name the header name
+     * @param value the header value
+     * @return this builder
+     * @throws IllegalArgumentException if the header name or value is not valid, see <a
+     *     href="https://tools.ietf.org/html/rfc7230#section-3.2">RFC 7230 section-3.2</a>,
+     *     or the header name or value is restricted by the implementation.
+     * @implNote An implementation may choose to restrict some header names or values,
+     *     as the HTTP Client may determine their value itself. For example,
+     *     "Content-Length", which will be determined by the request Publisher. In such a
+     *     case, an implementation of {@code HttpRequest.Builder} may choose to throw an
+     *     {@code IllegalArgumentException} if such a header is passed to the builder.
+     */
     Builder header(String name, String value);
 
+    /**
+     * Sets the request method of this builder to HEAD.
+     *
+     * @return this builder
+     */
     Builder HEAD();
 
+    /**
+     * Sets the request method of this builder to GET. This is the default.
+     *
+     * @return this builder
+     */
     Builder GET();
 
+    /**
+     * Sets the request method of this builder to POST and sets its request body publisher
+     * to the given value.
+     *
+     * @param body the request body
+     * @return this builder
+     */
     Builder POST(Body body);
 
+    /**
+     * Sets the request method of this builder to PUT and sets its request body publisher to
+     * the given value.
+     *
+     * @param body the request body
+     * @return this builder
+     */
     Builder PUT(Body body);
 
+    /**
+     * Sets the request method of this builder to DELETE.
+     *
+     * @return this builder
+     */
     Builder DELETE();
 
+    /**
+     * Sets the request method and request body of this bulder to the given values.
+     *
+     * @param method the method to use
+     * @param body the request body
+     * @return this builder
+     */
     Builder method(String method, Body body);
 
+    /**
+     * Sets the timeout for this request.
+     * <p>
+     * If the response is not received within the specified timeout than an
+     * {@link java.net.SocketTimeoutException SocketTimeoutException} is thrown from
+     * {@link HttpClient#send(HttpRequest, HttpResponse.BodyHandler) HttpClient.send} or
+     * {@link HttpClient#sendAsync(HttpRequest, HttpResponse.BodyHandler, Executor)
+     * HttpClient.sendAsync} completes exceptionally with an {@code SocketTimeoutException}.
+     * The effect of not setting a timeout is the same as setting an infinite Duration, i.e.
+     * block forever.
+     *
+     * @param duration the timeout duration
+     * @return this builder
+     * @throws IllegalArgumentException if the duration is non-positive
+     */
     Builder timeout(Duration duration);
 
+
+    /**
+     * Builds and returns an {@link HttpRequest}.
+     *
+     * @return a new {@code HttpRequest}
+     * @throws IllegalStateException if a URI has not been set
+     */
     HttpRequest build();
   }
 

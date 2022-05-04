@@ -35,29 +35,94 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
+/**
+ * An HTTP Response
+ *
+ * A {@code HttpResponse} is not created directly, but rather returned as
+ * a result of sending {@link HttpRequest}.
+ *
+ * This class provides methods for accessing the response status code,
+ * headers, the body, and the {@code HttpRequest} associated with this
+ * response.
+ *
+ * @param <T> the response body type
+ */
 public interface HttpResponse<T> {
 
+  /**
+   * A handler for response bodies. The class {@link BodyHandlers} provides
+   * implementations of common body handlers.
+   *
+   * The {@code BodyHandler} interface is responsible for creating response
+   * bodies. It consumes the actual response body bytes from the
+   * {@code InputStream} and, typically, converts them into a higher-level
+   * Java type.
+   *
+   * A {@code BodyHandler} is a function that takes a {@code InputStream}
+   * and returns a higher-level response body object which can be later
+   * retrieved from {@code HttpResponse}.
+   *
+   * @param <T> the response body type
+   */
   @FunctionalInterface
   interface BodyHandler<T> {
     T apply(InputStream stream) throws IOException;
   }
 
+  /**
+   * Implementations of {@link BodyHandler} that provide some useful handlers
+   * such as handling the response body as a {@code String}.
+   */
   class BodyHandlers {
     private BodyHandlers() {
     }
 
+    /**
+     * Returns a {@code BodyHandler<String>} that returns a response body
+     * as a String using default charset.
+     *
+     * @return a response body handler
+     */
     public static BodyHandler<String> ofString() {
       return stream -> new String(stream.readAllBytes());
     }
   }
 
+  /**
+   * Returns the status code for this response.
+   *
+   * @return the response code
+   */
   int statusCode();
 
+  /**
+   * Returns the {@link HttpRequest} corresponding to this response.
+   *
+   * @return the request
+   */
   HttpRequest request();
 
+  /**
+   * Returns the response headers received.
+   *
+   * @return the response headers
+   */
   HttpHeaders headers();
 
+  /**
+   * Returns the body. Depending on the type of {@code T}, the returned body
+   * may represent the data after it was read or may represent and object with
+   * which the body is read.
+   *
+   * @return the response body
+   */
   T body();
 
+  /**
+   * Returns the URI the response was received from. This may be different from
+   * the request URI if redirection occurred.
+   *
+   * @return the URI of the response
+   */
   URI uri();
 }
