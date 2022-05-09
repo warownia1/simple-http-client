@@ -143,4 +143,57 @@ public class HttpHeadersTest {
     HttpHeaders.of(Map.of(
         "Accept", List.of("text/plain"), "accept", List.of("text/html")));
   }
+
+  @Test
+  public void equals_EmptyHeaders_Equal() {
+    var headers1 = HttpHeaders.of(Map.of());
+    var headers2 = HttpHeaders.of(Map.of());
+    assertEquals(headers1, headers2);
+  }
+
+  @Test
+  public void equals_NonHeadersType_NotEqual() {
+    var headers = HttpHeaders.of(Map.of());
+    var map = Map.of();
+    assertNotEquals(headers, map);
+  }
+
+  @Test
+  public void equals_SameKeysAndValues_Equal() {
+    var headers1 = HttpHeaders.of(Map.of(
+        "Accept", List.of("text/plain", "text/html"),
+        "Content-Length", List.of("25")
+    ));
+    var headers2 = HttpHeaders.of(Map.of(
+        "Accept", List.of("text/plain", "text/html"),
+        "Content-Length", List.of("25")
+    ));
+    assertEquals(headers1, headers2);
+  }
+
+  @Test
+  public void equals_DifferentCaseKeys_Equal() {
+    var headers1 = HttpHeaders.of(Map.of(
+        "Accept", List.of("text/plain", "text/html"),
+        "Content-Length", List.of("25")
+    ));
+    var headers2 = HttpHeaders.of(Map.of(
+        "ACCEPT", List.of("text/plain", "text/html"),
+        "content-length", List.of("25")
+    ));
+    assertEquals(headers1, headers2);
+  }
+
+  @Test
+  public void equals_SameKeysDifferentValues_NotEqual() {
+    var headers1 = HttpHeaders.of(Map.of(
+        "Accept", List.of("text/plain", "text/html"),
+        "Content-Length", List.of("25")
+    ));
+    var headers2 = HttpHeaders.of(Map.of(
+        "Accept", List.of("text/plain", "text/css"),
+        "Content-Length", List.of("25")
+    ));
+    assertNotEquals(headers1, headers2);
+  }
 }
