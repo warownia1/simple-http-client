@@ -128,6 +128,8 @@ public class SimpleHttpRequestBuilder implements HttpRequest.Builder {
 
   @Override
   public ImmutableHttpRequest build() {
+    if (uri == null)
+      throw new IllegalStateException("uri is null");
     return new ImmutableHttpRequest(this);
   }
 }
