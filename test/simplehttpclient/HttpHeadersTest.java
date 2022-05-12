@@ -1,12 +1,10 @@
 package simplehttpclient;
 
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.testng.Assert.*;
 
@@ -19,7 +17,7 @@ public class HttpHeadersTest {
   public void setupHeaders() {
     headersMap = Map.of(
         "Content-Length", List.of("10"),
-        "Authorization", List.of("DE4D83EF    "),
+        "Authorization", List.of("DE4D83EF"),
         "Accept", List.of("application/json", "text/xml"),
         "Accept-Encoding", List.of()
     );
@@ -38,18 +36,8 @@ public class HttpHeadersTest {
   }
 
   @Test
-  public void map_ValueWithSpaces_TrimmedString() {
-    assertEquals(headers.map().get("Authorization"), List.of("DE4D83EF"));
-  }
-
-  @Test
   public void map_MultiValue_AllEqualOriginal() {
     assertEquals(headers.map().get("Accept"), List.of("application/json", "text/xml"));
-  }
-
-  @Test
-  public void map_EmptyValue_NotPresent() {
-    assertFalse(headers.map().containsKey("Accept-Encoding"));
   }
 
   @Test
@@ -90,28 +78,138 @@ public class HttpHeadersTest {
     assertEquals(connection, List.of());
   }
 
-  @Test
-  public void firstValue_NoValues_ValueNotPresent() {
-    var encoding = headers.firstValue("Accept-Encoding");
-    assertFalse(encoding.isPresent());
+
+  @DataProvider(name = "ValueTrimming")
+  public Object[][] createValueTrimmingHeaders() {
+    var values = List.of("gzip", " gzip", "gzip ", "  gzip",
+        "gzip  ", " gzip ", "\tgzip", "gzip\t", "\tgzip\t", " \tgzip",
+        "gzip \t", "gzip\t ", "\rgzip", "gzip\r", "\ngzip", "gzip\n",
+        "gzip\r\n");
+    var args = new Object[values.size()][];
+    int i = 0;
+    for (var value : values) {
+      args[i++] = new Object[]{Map.of("Accept-Encoding", List.of(value))};
+    }
+    return args;
   }
 
-  @Test
-  public void allValues_NoValues_EmptyList() {
-    var encoding = headers.allValues("Accept-Encoding");
-    assertEquals(encoding, List.of());
+  @Test(dataProvider = "ValueTrimming")
+  public void firstValue_ValueContainsSpaces_ValueTrimmed(Map<String, List<String>> map) {
+    HttpHeaders headers = HttpHeaders.of(map);
+    assertTrue(headers.firstValue("Accept-Encoding").isPresent());
+    assertEquals(headers.firstValue("Accept-Encoding").get(), "gzip");
   }
 
-  @Test
-  public void firstValue_KeyIgnoreCase_ValuePresent() {
-    var contentLength = headers.firstValue("content-length");
-    assertTrue(contentLength.isPresent());
+  @Test(dataProvider = "ValueTrimming")
+  public void allValues_ValueContainsSpaces_ValueTrimmed(Map<String, List<String>> map) {
+    HttpHeaders headers = HttpHeaders.of(map);
+    assertEquals(headers.allValues("Accept-Encoding"), List.of("gzip"));
   }
 
-  @Test
-  public void allValues_KeyIgnoreCase_ValuePresent() {
-    var contentLength = headers.allValues("content-length");
-    assertEquals(contentLength, List.of("10"));
+  @Test(dataProvider = "ValueTrimming")
+  public void map_ValueContainsSpaces_ValueTrimmed(Map<String, List<String>> map) {
+    HttpHeaders headers = HttpHeaders.of(map);
+    assertEquals(headers.map().get("Accept-Encoding"), List.of("gzip"));
+  }
+
+  @DataProvider(name = "KeyTrimming")
+  public Object[][] createKeyTrimmingHeaders() {
+    var keys = List.of("Accept", " Accept", "Accept ",
+        "  Accept", "Accept  ", "\tAccept", "Accept\t", "\rAccept", "Accept\r",
+        "Accept\n", "Accept\n", "Accept\r\n", "Accept \t");
+    var args = new Object[keys.size()][];
+    int i = 0;
+    for (var key : keys) {
+      args[i++] = new Object[]{Map.of(key, List.of("text/plain"))};
+    }
+    return args;
+  }
+
+  @Test(dataProvider = "KeyTrimming")
+  public void firstValue_KeyContainsSpace_KeyTrimmed(Map<String, List<String>> map) {
+    HttpHeaders headers = HttpHeaders.of(map);
+    assertTrue(headers.firstValue("Accept").isPresent());
+    assertEquals(headers.firstValue("Accept").get(), "text/plain");
+  }
+
+  @Test(dataProvider = "KeyTrimming")
+  public void allValues_KeyContainsSpace_KeyTrimmed(Map<String, List<String>> map) {
+    HttpHeaders headers = HttpHeaders.of(map);
+    assertEquals(headers.allValues("Accept"), List.of("text/plain"));
+  }
+
+  @Test(dataProvider = "KeyTrimming")
+  public void map_KeyContainsSpace_KeyTrimmed(Map<String, List<String>> map) {
+    HttpHeaders headers = HttpHeaders.of(map);
+    assertTrue(headers.map().containsKey("Accept"));
+    assertEquals(headers.map().get("Accept"), List.of("text/plain"));
+  }
+
+  @DataProvider(name = "CaseInsensitiveHeaders")
+  public Object[][] createCaseInsensitiveHeaders() {
+    return new Object[][]{
+        {Map.of("Content-Length", List.of("25"))},
+        {Map.of("content-length", List.of("25"))},
+        {Map.of("CONTENT-LENGTH", List.of("25"))},
+        {Map.of("ContEnt-LenGtH", List.of("25"))},
+        {Map.of("conTent-lENGTH", List.of("25"))}};
+  }
+
+  @Test(dataProvider = "CaseInsensitiveHeaders")
+  public void firstValue_HeaderNameIgnoresCase(Map<String, List<String>> map) {
+    HttpHeaders headers = HttpHeaders.of(map);
+    for (String key : List.of("Content-Length", "content-length",
+        "CONTENT-LENGTH", "CoNtENt-LengtH")) {
+      assertTrue(headers.firstValue(key).isPresent());
+      assertEquals(headers.firstValue(key).get(), "25");
+    }
+  }
+
+  @Test(dataProvider = "CaseInsensitiveHeaders")
+  public void allValues_HeaderNameIgnoresCase(Map<String, List<String>> map) {
+    HttpHeaders headers = HttpHeaders.of(map);
+    for (String key : List.of("Content-Length", "content-length",
+        "CONTENT-LENGTH", "CoNtENt-LengtH")) {
+      assertEquals(headers.allValues(key), List.of("25"));
+    }
+  }
+
+  @Test(dataProvider = "CaseInsensitiveHeaders")
+  public void map_MapKeysIgnoreCase(Map<String, List<String>> map) {
+    HttpHeaders headers = HttpHeaders.of(map);
+    for (String key : List.of("Content-Length", "content-length",
+        "CONTENT-LENGTH", "CoNtENt-LengtH")) {
+      assertTrue(headers.map().containsKey(key));
+      assertEquals(headers.map().get(key), List.of("25"));
+    }
+  }
+
+  @DataProvider(name = "EmptyListValue")
+  public Object[][] createNoValueHeaders() {
+    return new Object[][]{
+        {Map.of("Accept", List.of())},
+        {Map.of("Accept", Collections.emptyList())},
+        {Map.of("Accept", List.of(), "Encoding", List.of())}};
+  }
+
+  @Test(dataProvider = "EmptyListValue")
+  public void firstValue_NoValues_ValueNotPresent(Map<String, List<String>> map) {
+    HttpHeaders headers = HttpHeaders.of(map);
+    assertFalse(headers.firstValue("Accept").isPresent());
+  }
+
+  @Test(dataProvider = "EmptyListValue")
+  public void allValues_NoValues_EmptyList(Map<String, List<String>> map) {
+    HttpHeaders headers = HttpHeaders.of(map);
+    assertEquals(headers.allValues("Accept"), List.of());
+  }
+
+  @Test(dataProvider = "EmptyListValue")
+  public void map_NoValues_EmptyMap(Map<String, List<String>> map) {
+    HttpHeaders headers = HttpHeaders.of(map);
+    assertFalse(headers.map().containsKey("Accept"));
+    assertEquals(headers.map().size(), 0);
+    assertNull(headers.map().get("Accept"));
   }
 
   @Test(expectedExceptions = {NullPointerException.class})
@@ -133,15 +231,47 @@ public class HttpHeadersTest {
     HttpHeaders.of(map);
   }
 
-  @Test(expectedExceptions = {IllegalArgumentException.class})
-  public void of_EmptyKey_Throw() {
-    HttpHeaders.of(Map.of("", List.of("value")));
+  @DataProvider(name = "EmptyName")
+  public Object[][] createEmptyNameHeaders() {
+    return new Object[][]{
+        {Map.of("", List.of("V"))},
+        {Map.of(" ", List.of("V"))},
+        {Map.of("  ", List.of("V"))},
+        {Map.of("\t", List.of("V"))},
+        {Map.of("\t\t", List.of("V"))},
+        {Map.of(" \t", List.of("V"))},
+        {Map.of("\t ", List.of("V"))}};
   }
 
-  @Test(expectedExceptions = {IllegalArgumentException.class})
-  public void of_DuplicateKey_Throw() {
-    HttpHeaders.of(Map.of(
-        "Accept", List.of("text/plain"), "accept", List.of("text/html")));
+  @Test(dataProvider = "EmptyName", expectedExceptions = IllegalArgumentException.class)
+  public void of_EmptyKey_ThrowIAE(Map<String, List<String>> map) {
+    HttpHeaders.of(map);
+  }
+
+  @DataProvider(name = "DuplicateNames")
+  public Object[][] createDuplicateNamesHeaders() {
+    return new Object[][] {
+        {Map.of("Connection", List.of("close"),
+            "connection", List.of("keep-alive"))},
+        {Map.of("Connection", List.of(),
+            "connection", List.of())},
+        {Map.of("Connection", List.of("close"),
+            "connection", List.of())},
+        {Map.of("Connection", List.of(),
+            "connection", List.of("keep-alive"))},
+        {Map.of("Connection", List.of("close"),
+            "Accept-Encoding", List.of("deflate"),
+            "accept-encoding", List.of("deflate"))},
+        {Map.of("Accept-Encoding", List.of("deflate"),
+            "Accept-Encoding ", List.of("gzip"))},
+        {Map.of("\nAccept-Encoding", List.of("deflate"),
+            "Accept-Encoding\t", List.of("gzip"))}
+    };
+  }
+
+  @Test(dataProvider = "DuplicateNames", expectedExceptions = IllegalArgumentException.class)
+  public void of_DuplicateKey_Throw(Map<String, List<String>> map) {
+    HttpHeaders.of(map);
   }
 
   @Test
@@ -172,16 +302,20 @@ public class HttpHeadersTest {
   }
 
   @Test
-  public void equals_DifferentCaseKeys_Equal() {
-    var headers1 = HttpHeaders.of(Map.of(
-        "Accept", List.of("text/plain", "text/html"),
-        "Content-Length", List.of("25")
-    ));
-    var headers2 = HttpHeaders.of(Map.of(
-        "ACCEPT", List.of("text/plain", "text/html"),
-        "content-length", List.of("25")
-    ));
-    assertEquals(headers1, headers2);
+  public void equals_CaseInsensitiveNames_AllEqual() {
+    var maps = List.of(
+        Map.of("Content-Length", List.of("25")),
+        Map.of("content-length", List.of("25")),
+        Map.of("CONTENT-LENGTH", List.of("25")),
+        Map.of("ContEnt-LenGtH", List.of("25")),
+        Map.of("conTent-lENGTH", List.of("25")));
+    for (var map1 : maps) {
+      HttpHeaders headers1 = HttpHeaders.of(map1);
+      for (var map2 : maps) {
+        HttpHeaders headers2 = HttpHeaders.of(map2);
+        assertEquals(headers1, headers2);
+      }
+    }
   }
 
   @Test

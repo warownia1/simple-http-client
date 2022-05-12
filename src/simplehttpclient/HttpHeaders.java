@@ -95,6 +95,7 @@ public final class HttpHeaders {
   public static HttpHeaders of(Map<String, List<String>> map) {
     requireNonNull(map);
     TreeMap<String, List<String>> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    TreeSet<String> notAdded = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
     map.forEach((key, value) -> {
       String headerName = requireNonNull(key, "header name").trim();
       if (headerName.isEmpty()) {
@@ -106,11 +107,14 @@ public final class HttpHeaders {
         headerValue = requireNonNull(headerValue, "header value").trim();
         headerValues.add(headerValue);
       }
+      if (headers.containsKey(headerName) || notAdded.contains(headerName)) {
+        throw new IllegalArgumentException("duplicate header: " + headerName);
+      }
       if (!headerValues.isEmpty()) {
-        if (headers.containsKey(headerName)) {
-          throw new IllegalArgumentException("duplicate header: " + headerName);
-        }
         headers.put(headerName, unmodifiableList(headerValues));
+      }
+      else {
+        notAdded.add(headerName);
       }
     });
     return new HttpHeaders(unmodifiableMap(headers));
