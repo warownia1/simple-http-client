@@ -14,6 +14,8 @@ import static org.testng.Assert.*;
 
 public class SimpleHttpRequestBuilderTest {
 
+  private static final URI EXAMPLE_URI = URI.create("http://example.org");
+
   @DataProvider(name = "EmptyBuilder")
   public Object[] createBuilder() {
     return new Object[]{new SimpleHttpRequestBuilder()};
@@ -25,36 +27,49 @@ public class SimpleHttpRequestBuilderTest {
     builder.build();
   }
 
-  @Test(dataProvider = "EmptyBuilder")
-  public void uri_HttpScheme_UriPresent(HttpRequest.Builder builder) {
-    builder.uri(URI.create("http://example.org"));
-    var request = builder.build();
-    assertEquals(request.uri(), URI.create("http://example.org"));
+  @DataProvider(name = "ValidURI")
+  public Object[][] createValidURI() {
+    return new Object[][]{
+        {URI.create("http://example.org")},
+        {URI.create("https://example.org")},
+        {URI.create("http://example.org/")},
+        {URI.create("http://www.example.org")},
+        {URI.create("http://example.org/path/1234")},
+        {URI.create("http://example.org/index.html")},
+        {URI.create("http://example.org?foo=hello%20world")},
+        {URI.create("http://example.org?val1=A&val2=B")},
+        {URI.create("http://example.org#fragment")},
+        {URI.create("http://example.org:8080")},
+        {URI.create("http://example.org:8080/path?val=A#fragm")},
+        {URI.create("http://user@exmaple.org")},
+        {URI.create("http://user:p4s5w0rd@example.org")},
+        {URI.create("http://10.0.0.1")},
+        {URI.create("http://10.0.0.2:8000")},
+        {URI.create("http://[1080:0:0:0:8:800:200C:417A]")},
+        {URI.create("http://[1080:0:0:0:8:800:200C:417A]:8000")}
+    };
   }
 
-  @Test(dataProvider = "EmptyBuilder")
-  public void uri_HttpsScheme_UriPresent(HttpRequest.Builder builder) {
-    builder.uri(URI.create("https://example.org"));
-    var request = builder.build();
-    assertEquals(request.uri(), URI.create("https://example.org"));
+  @Test(dataProvider = "ValidURI")
+  public void uri_ValidURI(URI uri) {
+    var request = new SimpleHttpRequestBuilder().uri(uri).build();
+    assertEquals(request.uri(), uri);
   }
 
-  @Test(expectedExceptions = {IllegalArgumentException.class},
-      dataProvider = "EmptyBuilder")
-  public void uri_NoScheme_Throw(HttpRequest.Builder builder) {
-    builder.uri(URI.create("//example.org"));
+  @DataProvider(name = "InvalidURI")
+  public Object[][] createInvalidURI() {
+    return new Object[][] {
+        {URI.create("example.org")},
+        {URI.create("//example.org")},
+        {URI.create("ftp://exmaple.org")},
+        {URI.create("mailto://user@example.org")},
+        {URI.create("http:///path")}
+    };
   }
 
-  @Test(expectedExceptions = {IllegalArgumentException.class},
-      dataProvider = "EmptyBuilder")
-  public void uri_UnsupportedScheme_Throw(HttpRequest.Builder builder) {
-    builder.uri(URI.create("ftp://example.org"));
-  }
-
-  @Test(expectedExceptions = {IllegalArgumentException.class},
-      dataProvider = "EmptyBuilder")
-  public void uri_NoHost_Throw(HttpRequest.Builder builder) {
-    builder.uri(URI.create("http:///path"));
+  @Test(dataProvider = "InvalidURI", expectedExceptions = IllegalArgumentException.class)
+  public void uri_InvalidURI_ThrowIAE(URI uri) {
+    new SimpleHttpRequestBuilder().uri(uri);
   }
 
   @DataProvider(name = "BuilderWithURI")
