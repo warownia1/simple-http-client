@@ -35,6 +35,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.LinkedHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
@@ -75,7 +76,10 @@ public class SimpleHttpClient implements HttpClient {
       os.write(body.getBytes());
     }
     int statusCode = conn.getResponseCode();
-    HttpHeaders headers = HttpHeaders.of(conn.getHeaderFields());
+    var headersMap = new LinkedHashMap<>(conn.getHeaderFields());
+    // URLConnection maps null to status line
+    headersMap.remove(null);
+    HttpHeaders headers = HttpHeaders.of(headersMap);
     T body = handler.apply(conn.getInputStream());
     URI uri;
     try {
