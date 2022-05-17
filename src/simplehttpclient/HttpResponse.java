@@ -86,6 +86,10 @@ public interface HttpResponse<T> {
     public static BodyHandler<String> ofString() {
       return stream -> new String(stream.readAllBytes());
     }
+
+    public static BodyHandler<Void> discarding() {
+      return stream -> null;
+    }
   }
 
   /**
