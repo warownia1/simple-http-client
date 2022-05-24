@@ -90,6 +90,17 @@ public interface HttpResponse<T> {
     public static BodyHandler<Void> discarding() {
       return stream -> null;
     }
+
+    /**
+     * Returns a {@code BodyHandler<InputStream>} that returns a response
+     * body as an {@link InputStream} from which the body can be read as
+     * it is received.
+     *
+     * @return a response body handler
+     */
+    public static BodyHandler<InputStream> ofInputStream() {
+      return stream -> stream;
+    }
   }
 
   /**
