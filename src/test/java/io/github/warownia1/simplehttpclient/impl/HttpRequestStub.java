@@ -1,7 +1,7 @@
-package simplehttpclient.impl;
+package io.github.warownia1.simplehttpclient.impl;
 
-import simplehttpclient.HttpHeaders;
-import simplehttpclient.HttpRequest;
+import io.github.warownia1.simplehttpclient.HttpHeaders;
+import io.github.warownia1.simplehttpclient.HttpRequest;
 
 import java.net.URI;
 import java.time.Duration;

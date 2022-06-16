@@ -22,12 +22,12 @@
  * additional information.
  */
 
-package simplehttpclient.impl;
+package io.github.warownia1.simplehttpclient.impl;
 
-import simplehttpclient.HttpClient;
-import simplehttpclient.HttpRequest;
-import simplehttpclient.HttpResponse;
-import simplehttpclient.HttpResponse.BodyHandler;
+import io.github.warownia1.simplehttpclient.HttpClient;
+import io.github.warownia1.simplehttpclient.HttpRequest;
+import io.github.warownia1.simplehttpclient.HttpResponse;
+import io.github.warownia1.simplehttpclient.HttpResponse.BodyHandler;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

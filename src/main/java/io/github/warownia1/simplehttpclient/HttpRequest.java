@@ -29,9 +29,9 @@
  * mmzwarowny@dundee.ac.uk if you need additional information.
  */
 
-package simplehttpclient;
+package io.github.warownia1.simplehttpclient;
 
-import simplehttpclient.impl.SimpleHttpRequestBuilder;
+import io.github.warownia1.simplehttpclient.impl.SimpleHttpRequestBuilder;
 
 import java.net.URI;
 import java.time.Duration;

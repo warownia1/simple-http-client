@@ -1,4 +1,4 @@
-package simplehttpclient;
+package io.github.warownia1.simplehttpclient;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;

@@ -22,10 +22,10 @@
  * additional information.
  */
 
-package simplehttpclient;
+package io.github.warownia1.simplehttpclient;
 
-import simplehttpclient.impl.JQueryHttpClient;
-import simplehttpclient.impl.SimpleHttpClient;
+import io.github.warownia1.simplehttpclient.impl.JQueryHttpClient;
+import io.github.warownia1.simplehttpclient.impl.SimpleHttpClient;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;

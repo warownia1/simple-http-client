@@ -1,9 +1,9 @@
-package simplehttpclient.impl;
+package io.github.warownia1.simplehttpclient.impl;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import simplehttpclient.HttpHeaders;
-import simplehttpclient.HttpRequest;
+import io.github.warownia1.simplehttpclient.HttpHeaders;
+import io.github.warownia1.simplehttpclient.HttpRequest;
 
 import java.net.URI;
 import java.time.Duration;

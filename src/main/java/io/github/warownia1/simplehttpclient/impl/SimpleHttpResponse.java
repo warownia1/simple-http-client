@@ -22,27 +22,54 @@
  * additional information.
  */
 
-package simplehttpclient.impl;
+package io.github.warownia1.simplehttpclient.impl;
 
-import simplehttpclient.HttpRequest;
+import io.github.warownia1.simplehttpclient.HttpHeaders;
+import io.github.warownia1.simplehttpclient.HttpRequest;
+import io.github.warownia1.simplehttpclient.HttpResponse;
 
-public class EmptyRequestBody implements HttpRequest.Body {
+import java.net.URI;
 
-  public static final EmptyRequestBody instance = new EmptyRequestBody();
-  private static final byte[] body = new byte[0];
+public class SimpleHttpResponse<T> implements HttpResponse<T> {
 
-  public static HttpRequest.Body getInstance() {
-    return instance;
+  private final int statusCode;
+  private final HttpRequest request;
+  private final HttpHeaders headers;
+  private final T body;
+  private final URI uri;
+
+  public SimpleHttpResponse(int statusCode, HttpRequest request,
+      HttpHeaders headers, T body, URI uri) {
+    this.statusCode = statusCode;
+    this.request = request;
+    this.headers = headers;
+    this.body = body;
+    this.uri = uri;
   }
 
   @Override
-  public byte[] getBytes() {
+  public int statusCode() {
+    return statusCode;
+  }
+
+  @Override
+  public HttpRequest request() {
+    return request;
+  }
+
+  @Override
+  public HttpHeaders headers() {
+    return headers;
+  }
+
+  @Override
+  public T body() {
     return body;
   }
 
   @Override
-  public long contentLength() {
-    return 0;
+  public URI uri() {
+    return uri;
   }
 
 }

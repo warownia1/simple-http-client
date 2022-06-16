@@ -29,17 +29,17 @@
  * mmzwarowny@dundee.ac.uk if you need additional information.
  */
 
-package simplehttpclient.impl;
+package io.github.warownia1.simplehttpclient.impl;
+
+import io.github.warownia1.simplehttpclient.HttpRequest;
 
 import java.net.URI;
 import java.time.Duration;
 import java.util.Locale;
 import java.util.Objects;
 
-import static java.util.Objects.requireNonNull;
 import static java.lang.String.format;
-
-import simplehttpclient.HttpRequest;
+import static java.util.Objects.requireNonNull;
 
 public class SimpleHttpRequestBuilder implements HttpRequest.Builder {
 

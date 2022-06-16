@@ -22,36 +22,27 @@
  * additional information.
  */
 
-package simplehttpclient.impl;
+package io.github.warownia1.simplehttpclient.impl;
 
-import simplehttpclient.HttpRequest;
+import io.github.warownia1.simplehttpclient.HttpRequest;
 
-public class ByteArrayRequestBody implements HttpRequest.Body {
+public class EmptyRequestBody implements HttpRequest.Body {
 
-  private final int length;
-  private final byte[] content;
-  private final int offset;
+  public static final EmptyRequestBody instance = new EmptyRequestBody();
+  private static final byte[] body = new byte[0];
 
-  public ByteArrayRequestBody(byte[] content) {
-    this(content, 0, content.length);
-  }
-
-  public ByteArrayRequestBody(byte[] content, int offset, int length) {
-    this.content = content;
-    this.offset = offset;
-    this.length = length;
+  public static HttpRequest.Body getInstance() {
+    return instance;
   }
 
   @Override
   public byte[] getBytes() {
-    byte[] buffer = new byte[length];
-    System.arraycopy(content, offset, buffer, 0, length);
-    return buffer;
+    return body;
   }
 
   @Override
   public long contentLength() {
-    return length;
+    return 0;
   }
 
 }

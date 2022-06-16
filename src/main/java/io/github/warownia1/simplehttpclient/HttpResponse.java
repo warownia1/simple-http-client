@@ -29,7 +29,7 @@
  * mmzwarowny@dundee.ac.uk if you need additional information.
  */
 
-package simplehttpclient;
+package io.github.warownia1.simplehttpclient;
 
 import java.io.IOException;
 import java.io.InputStream;

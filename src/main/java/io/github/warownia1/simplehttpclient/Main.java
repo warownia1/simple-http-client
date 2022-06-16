@@ -1,10 +1,10 @@
-package simplehttpclient;
+package io.github.warownia1.simplehttpclient;
+
+import io.github.warownia1.simplehttpclient.impl.ByteArrayRequestBody;
+import io.github.warownia1.simplehttpclient.impl.JQueryHttpClient;
+import io.github.warownia1.simplehttpclient.impl.SimpleHttpRequestBuilder;
 
 import java.net.URI;
-
-import simplehttpclient.impl.ByteArrayRequestBody;
-import simplehttpclient.impl.JQueryHttpClient;
-import simplehttpclient.impl.SimpleHttpRequestBuilder;
 
 public class Main
 {
@@ -13,7 +13,7 @@ public class Main
     var body = new ByteArrayRequestBody(content.getBytes());
     var request = new SimpleHttpRequestBuilder()
 //        .uri(URI.create("https://ptsv2.com/t/kaliog/post"))
-        .uri(URI.create("http://localhost:8080"))
+        .uri(URI.create("http://localhost:5000"))
 //        .header("Content-Type", "text/plain")
         .header("Foo", "foo")
         .header("Foo", "bar")

@@ -1,4 +1,4 @@
-package simplehttpclient.impl;
+package io.github.warownia1.simplehttpclient.impl;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;

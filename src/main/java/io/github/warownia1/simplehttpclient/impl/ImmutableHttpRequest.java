@@ -29,57 +29,60 @@
  * mmzwarowny@dundee.ac.uk if you need additional information.
  */
 
-package simplehttpclient.impl;
+package io.github.warownia1.simplehttpclient.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import io.github.warownia1.simplehttpclient.HttpHeaders;
+import io.github.warownia1.simplehttpclient.HttpRequest;
 
-import simplehttpclient.HttpHeaders;
+import java.net.URI;
+import java.time.Duration;
+import java.util.Optional;
 
-/**
- * A mutable builder for collecting and building HTTP headers.
- */
-public class HttpHeadersBuilder {
+import static java.util.Objects.requireNonNull;
 
-  private final TreeMap<String, List<String>> headers =
-      new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+public final class ImmutableHttpRequest extends HttpRequest {
 
-  public HttpHeadersBuilder structuralCopy() {
-    HttpHeadersBuilder builder = new HttpHeadersBuilder();
-    for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
-      List<String> valuesCopy = new ArrayList<>(entry.getValue());
-      builder.headers.put(entry.getKey(), valuesCopy);
-    }
-    return builder;
+  private final String method;
+  private final URI uri;
+  private final HttpHeaders headers;
+  private final Body body;
+  private final Duration timeout;
+
+  ImmutableHttpRequest(SimpleHttpRequestBuilder builder) {
+    this.method = requireNonNull(builder.method);
+    this.uri = requireNonNull(builder.uri);
+    this.headers = HttpHeaders.of(builder.headers.map());
+    this.body = builder.body;
+    this.timeout = builder.timeout;
   }
 
-  public void addHeader(String name, String value) {
-    headers.computeIfAbsent(name, k -> new ArrayList<>(1))
-        .add(value);
+  @Override
+  public String method() {
+    return method;
   }
 
-  public void setHeader(String name, String value) {
-    List<String> values = new ArrayList<>(1);
-    values.add(value);
-    headers.put(name, values);
+  @Override
+  public URI uri() {
+    return uri;
   }
 
-  public void clear() {
-    headers.clear();
-  }
-
-  public Map<String, List<String>> map() {
+  @Override
+  public HttpHeaders headers() {
     return headers;
   }
 
-  public HttpHeaders build() {
-    return HttpHeaders.of(headers);
+  @Override
+  public Optional<Body> body() {
+    return Optional.ofNullable(body);
+  }
+
+  @Override
+  public Optional<Duration> timeout() {
+    return Optional.ofNullable(timeout);
   }
 
   @Override
   public String toString() {
-    return super.toString() + " { " + map() + " }";
+    return uri.toString() + " " + method;
   }
 }

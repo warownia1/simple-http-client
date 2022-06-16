@@ -22,54 +22,36 @@
  * additional information.
  */
 
-package simplehttpclient.impl;
+package io.github.warownia1.simplehttpclient.impl;
 
-import java.net.URI;
+import io.github.warownia1.simplehttpclient.HttpRequest;
 
-import simplehttpclient.HttpHeaders;
-import simplehttpclient.HttpRequest;
-import simplehttpclient.HttpResponse;
+public class ByteArrayRequestBody implements HttpRequest.Body {
 
-public class SimpleHttpResponse<T> implements HttpResponse<T> {
+  private final int length;
+  private final byte[] content;
+  private final int offset;
 
-  private final int statusCode;
-  private final HttpRequest request;
-  private final HttpHeaders headers;
-  private final T body;
-  private final URI uri;
+  public ByteArrayRequestBody(byte[] content) {
+    this(content, 0, content.length);
+  }
 
-  public SimpleHttpResponse(int statusCode, HttpRequest request,
-      HttpHeaders headers, T body, URI uri) {
-    this.statusCode = statusCode;
-    this.request = request;
-    this.headers = headers;
-    this.body = body;
-    this.uri = uri;
+  public ByteArrayRequestBody(byte[] content, int offset, int length) {
+    this.content = content;
+    this.offset = offset;
+    this.length = length;
   }
 
   @Override
-  public int statusCode() {
-    return statusCode;
+  public byte[] getBytes() {
+    byte[] buffer = new byte[length];
+    System.arraycopy(content, offset, buffer, 0, length);
+    return buffer;
   }
 
   @Override
-  public HttpRequest request() {
-    return request;
-  }
-
-  @Override
-  public HttpHeaders headers() {
-    return headers;
-  }
-
-  @Override
-  public T body() {
-    return body;
-  }
-
-  @Override
-  public URI uri() {
-    return uri;
+  public long contentLength() {
+    return length;
   }
 
 }
