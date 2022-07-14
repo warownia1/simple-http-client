@@ -17,8 +17,8 @@ public class SimpleHttpRequestBuilderTest {
   private static final URI EXAMPLE_URI = URI.create("http://example.org");
 
   @DataProvider(name = "EmptyBuilder")
-  public Object[] createBuilder() {
-    return new Object[]{new SimpleHttpRequestBuilder()};
+  public Object[][] createBuilder() {
+    return new Object[][]{{new SimpleHttpRequestBuilder()}};
   }
 
   @Test(expectedExceptions = {IllegalStateException.class},
@@ -73,10 +73,10 @@ public class SimpleHttpRequestBuilderTest {
   }
 
   @DataProvider(name = "BuilderWithURI")
-  public Object[] createBuilderWithURI() {
+  public Object[][] createBuilderWithURI() {
     var builder = new SimpleHttpRequestBuilder();
     builder.uri(URI.create("http://example.org"));
-    return new Object[]{builder};
+    return new Object[][]{{builder}};
   }
 
   @Test(dataProvider = "BuilderWithURI")

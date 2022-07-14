@@ -56,7 +56,7 @@ public class SimpleHttpClient implements HttpClient {
         conn.addRequestProperty(header, value);
       }
     });
-    if (request.body().isPresent()) {
+    if (request.body().isPresent() && request.body().get().contentLength() != 0) {
       conn.setDoOutput(true);
       conn.setRequestProperty("Content-Length",
           Long.toString(request.body().get().contentLength()));
@@ -70,7 +70,7 @@ public class SimpleHttpClient implements HttpClient {
       conn.setReadTimeout(timeoutMillis);
     }
     conn.connect();
-    if (request.body().isPresent()) {
+    if (conn.getDoOutput()) {
       HttpRequest.Body body = request.body().get();
       OutputStream os = conn.getOutputStream();
       os.write(body.getBytes());

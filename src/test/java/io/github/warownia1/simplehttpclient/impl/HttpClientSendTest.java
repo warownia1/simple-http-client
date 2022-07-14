@@ -5,12 +5,13 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.RequestMethod;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import io.github.warownia1.simplehttpclient.HttpClient;
-import io.github.warownia1.simplehttpclient.HttpHeaders;
+import io.github.warownia1.simplehttpclient.HttpRequest;
 import io.github.warownia1.simplehttpclient.HttpResponse;
 import org.testng.annotations.*;
 
 import java.io.IOException;
 import java.net.ProtocolException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -60,16 +61,18 @@ public class HttpClientSendTest {
       throws IOException {
     stubFor(get(path).willReturn(ok()));
     var client = HttpClient.newHttpClient();
-    var request = new HttpRequestStub(server.url(path));
+    var request = HttpRequest
+        .newBuilder(URI.create(server.url(path))).build();
     client.send(request, HttpResponse.BodyHandlers.discarding());
     verify(getRequestedFor(urlEqualTo(path)));
   }
 
   @Test
   public void send_EmptyPath_PathIsRoot() throws IOException {
-    stubFor(get("/").willReturn(ok()));
+    stubFor(any(anyUrl()).willReturn(ok()));
     var client = HttpClient.newHttpClient();
-    var request = new HttpRequestStub(server.url(""));
+    var request = HttpRequest
+        .newBuilder(URI.create(server.baseUrl())).build();
     client.send(request, HttpResponse.BodyHandlers.discarding());
     verify(getRequestedFor(urlEqualTo("/")));
   }
@@ -77,9 +80,10 @@ public class HttpClientSendTest {
   @Test(dataProvider = "SimplePath")
   public void send_PathWithFragment_FragmentNotSent(String path)
       throws IOException {
-    stubFor(get(path).willReturn(ok()));
+    stubFor(any(anyUrl()).willReturn(ok()));
     var client = HttpClient.newHttpClient();
-    var request = new HttpRequestStub(server.url(path) + "#fragment");
+    var request = HttpRequest
+        .newBuilder(URI.create(server.url(path) + "#fragment")).build();
     client.send(request, HttpResponse.BodyHandlers.discarding());
     verify(getRequestedFor(urlEqualTo(path)));
   }
@@ -100,10 +104,12 @@ public class HttpClientSendTest {
 
   @Test(dataProvider = "HttpMethod")
   public void send_TestMethodSent(String method) throws IOException {
-    stubFor(any(urlEqualTo("/")).willReturn(ok()));
+    stubFor(any(anyUrl()).willReturn(ok()));
     var client = HttpClient.newHttpClient();
-    var request = new HttpRequestStub(server.baseUrl());
-    request.method = method;
+    var request = HttpRequest
+        .newBuilder(URI.create(server.baseUrl()))
+        .method(method, EmptyRequestBody.instance)
+        .build();
     client.send(request, HttpResponse.BodyHandlers.discarding());
     verify(RequestPatternBuilder.newRequestPattern(
         RequestMethod.fromString(method), urlEqualTo("/")));
@@ -121,9 +127,12 @@ public class HttpClientSendTest {
   @Test(dataProvider = "InvalidHttpMethod", expectedExceptions = ProtocolException.class)
   public void send_InvalidHttpMethod_ThrowProtocolException(String method)
       throws IOException {
+    stubFor(any(anyUrl()).willReturn(ok()));
     var client = HttpClient.newHttpClient();
-    var request = new HttpRequestStub(server.baseUrl());
-    request.method = method;
+    var request = HttpRequest
+        .newBuilder(URI.create(server.baseUrl()))
+        .method(method, EmptyRequestBody.instance)
+        .build();
     client.send(request, HttpResponse.BodyHandlers.discarding());
   }
 
@@ -148,9 +157,10 @@ public class HttpClientSendTest {
   public void send_SendBody_ContentReceived(byte[] body) throws IOException {
     stubFor(post("/").willReturn(ok()));
     var client = HttpClient.newHttpClient();
-    var request = new HttpRequestStub(server.baseUrl());
-    request.method = "POST";
-    request.body = new ByteArrayRequestBody(body);
+    var request = HttpRequest
+        .newBuilder(URI.create(server.baseUrl()))
+        .method("POST", new ByteArrayRequestBody(body))
+        .build();
     client.send(request, HttpResponse.BodyHandlers.discarding());
     verify(postRequestedFor(urlPathEqualTo("/"))
         .withRequestBody(binaryEqualTo(body)));
@@ -160,9 +170,10 @@ public class HttpClientSendTest {
   public void send_SendBody_ContentLengthSet(byte[] body) throws IOException {
     stubFor(post("/").willReturn(ok()));
     var client = HttpClient.newHttpClient();
-    var request = new HttpRequestStub(server.baseUrl());
-    request.method = "POST";
-    request.body = new ByteArrayRequestBody(body);
+    var request = HttpRequest
+        .newBuilder(URI.create(server.baseUrl()))
+        .method("POST", new ByteArrayRequestBody(body))
+        .build();
     client.send(request, HttpResponse.BodyHandlers.discarding());
     verify(postRequestedFor(urlPathEqualTo("/"))
         .withHeader("Content-Length", equalTo(Integer.toString(body.length))));
@@ -183,11 +194,14 @@ public class HttpClientSendTest {
   @Test(dataProvider = "Headers")
   public void send_SetHeaders_HeadersPresent(Map<String, List<String>> headersMap)
       throws IOException {
-    stubFor(get("/").willReturn(ok()));
+    stubFor(any(anyUrl()).willReturn(ok()));
     var client = HttpClient.newHttpClient();
-    var request = new HttpRequestStub(server.baseUrl());
-    request.headers = HttpHeaders.of(headersMap);
-    client.send(request, HttpResponse.BodyHandlers.discarding());
+    var request = HttpRequest
+        .newBuilder(URI.create(server.baseUrl()));
+    for (var entry : headersMap.entrySet()) {
+      entry.getValue().forEach(it -> request.header(entry.getKey(), it));
+    }
+    client.send(request.build(), HttpResponse.BodyHandlers.discarding());
     var reqPattern = getRequestedFor(urlEqualTo("/"));
     for (var entry : headersMap.entrySet()) {
       String headerName = entry.getKey();
