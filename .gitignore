@@ -2,3 +2,6 @@ target/
 site/
 template.html
 .j2s
+/bin/
+/.gradle/
+/build/
