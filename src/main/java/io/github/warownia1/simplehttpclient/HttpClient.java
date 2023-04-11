@@ -91,4 +91,12 @@ public interface HttpClient {
    */
   <T> CompletableFuture<HttpResponse<T>> sendAsync(
       HttpRequest request, HttpResponse.BodyHandler<T> handler, Executor executor);
+
+  enum Version {
+
+    /**
+     * HTTP version 1.1
+     */
+    HTTP_1_1
+  }
 }

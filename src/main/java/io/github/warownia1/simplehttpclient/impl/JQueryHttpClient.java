@@ -25,6 +25,7 @@
 package io.github.warownia1.simplehttpclient.impl;
 
 import io.github.warownia1.simplehttpclient.HttpClient;
+import io.github.warownia1.simplehttpclient.HttpHeaders;
 import io.github.warownia1.simplehttpclient.HttpRequest;
 import io.github.warownia1.simplehttpclient.HttpResponse;
 import io.github.warownia1.simplehttpclient.HttpResponse.BodyHandler;
@@ -95,8 +96,10 @@ public class JQueryHttpClient implements HttpClient {
     }
     String responseText = /** @j2sNative jqXHR.responseText || */"";
     InputStream stream = new ByteArrayInputStream(responseText.getBytes(StandardCharsets.UTF_8));
+    HttpHeaders headers = responseHeaders.build();
+    ResponseInfoImpl responseInfo = new ResponseInfoImpl(statusCode, headers, Version.HTTP_1_1);
     return new SimpleHttpResponse<>(
-        statusCode, request, responseHeaders.build(), handler.apply(stream),
+        statusCode, request, headers, handler.apply(responseInfo, stream),
         request.uri()
     );
   }

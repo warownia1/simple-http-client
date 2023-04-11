@@ -80,7 +80,8 @@ public class SimpleHttpClient implements HttpClient {
     // URLConnection maps null to status line
     headersMap.remove(null);
     HttpHeaders headers = HttpHeaders.of(headersMap);
-    T body = handler.apply(conn.getInputStream());
+    ResponseInfoImpl responseInfo = new ResponseInfoImpl(statusCode, headers, Version.HTTP_1_1);
+    T body = handler.apply(responseInfo, conn.getInputStream());
     URI uri;
     try {
       uri = conn.getURL().toURI();

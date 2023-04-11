@@ -50,23 +50,49 @@ import java.net.URI;
 public interface HttpResponse<T> {
 
   /**
+   * Initial response information supplied to a {@link BodyHandler BodyHandler}
+   * when a response is initially received and before the body is processed.
+   */
+  interface ResponseInfo {
+    /**
+     * Provides the response status code.
+     * @return the response status code
+     */
+    int statusCode();
+
+    /**
+     * Provides the response headers.
+     * @return the response headers
+     */
+    HttpHeaders headers();
+
+    /**
+     * Provides the response protocol version.
+     * @return the response protocol version
+     */
+    HttpClient.Version version();
+  }
+
+  /**
    * A handler for response bodies. The class {@link BodyHandlers} provides
    * implementations of common body handlers.
-   *
-   * The {@code BodyHandler} interface is responsible for creating response
-   * bodies. It consumes the actual response body bytes from the
-   * {@code InputStream} and, typically, converts them into a higher-level
-   * Java type.
-   *
-   * A {@code BodyHandler} is a function that takes a {@code InputStream}
-   * and returns a higher-level response body object which can be later
-   * retrieved from {@code HttpResponse}.
+   * <p>
+   * The {@code BodyHandler} interface allows inspection of the response code
+   * and headers, before an actual response body is received. It consumes the
+   * actual response body bytes from the {@code InputStream} and, typically,
+   * converts them into a higher-level Java type.
+   * <p>
+   * A {@code BodyHandler} is a function that takes a {@link ResponseInfo}
+   * object and an {@code InputStream}, and returns a higher-level response body
+   * object which can be later retrieved from {@code HttpResponse}. The
+   * {@code BodyHandler} is invoked when the response status code and headers
+   * are available, but before the response body bytes are received.
    *
    * @param <T> the response body type
    */
   @FunctionalInterface
   interface BodyHandler<T> {
-    T apply(InputStream stream) throws IOException;
+    T apply(ResponseInfo responseInfo, InputStream stream) throws IOException;
   }
 
   /**
@@ -84,11 +110,11 @@ public interface HttpResponse<T> {
      * @return a response body handler
      */
     public static BodyHandler<String> ofString() {
-      return stream -> new String(stream.readAllBytes());
+      return (info, stream) -> new String(stream.readAllBytes());
     }
 
     public static BodyHandler<Void> discarding() {
-      return stream -> null;
+      return (info, stream) -> null;
     }
 
     /**
@@ -99,7 +125,7 @@ public interface HttpResponse<T> {
      * @return a response body handler
      */
     public static BodyHandler<InputStream> ofInputStream() {
-      return stream -> stream;
+      return (info, stream) -> stream;
     }
   }
 
