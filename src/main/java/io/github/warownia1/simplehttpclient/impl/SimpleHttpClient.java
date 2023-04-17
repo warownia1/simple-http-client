@@ -31,6 +31,7 @@ import io.github.warownia1.simplehttpclient.HttpResponse;
 import io.github.warownia1.simplehttpclient.HttpResponse.BodyHandler;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -81,7 +82,8 @@ public class SimpleHttpClient implements HttpClient {
     headersMap.remove(null);
     HttpHeaders headers = HttpHeaders.of(headersMap);
     ResponseInfoImpl responseInfo = new ResponseInfoImpl(statusCode, headers, Version.HTTP_1_1);
-    T body = handler.apply(responseInfo, conn.getInputStream());
+    InputStream inputStream = statusCode < 400 ? conn.getInputStream() : conn.getErrorStream();
+    T body = handler.apply(responseInfo, inputStream);
     URI uri;
     try {
       uri = conn.getURL().toURI();

@@ -71,7 +71,13 @@ public class JQueryHttpClient implements HttpClient {
       }
     };
     AjaxFailConsumer failConsumer = (jqXHR, textStatus, errorThrown) -> {
-      responseFuture.completeExceptionally(new IOException(errorThrown));
+      try {
+        HttpResponse<T> response = responseFromJqXHR(request, handler, jqXHR);
+        responseFuture.complete(response);
+      }
+      catch (Exception e) {
+        responseFuture.completeExceptionally(e);
+      }
     };
     Object XHRHandler = doAjax(request, true);
     /** @j2sNative
