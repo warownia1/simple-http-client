@@ -3,14 +3,14 @@ package io.github.warownia1.simplehttpclient.impl;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.github.warownia1.simplehttpclient.HttpClient;
+import io.github.warownia1.simplehttpclient.HttpHeaders;
 import io.github.warownia1.simplehttpclient.HttpRequest;
 import io.github.warownia1.simplehttpclient.HttpResponse;
 import org.testng.annotations.*;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -121,5 +121,73 @@ public class HttpClientReplyTest {
     var request = HttpRequest.newBuilder(URI.create(server.baseUrl())).build();
     var response = client.send(request, HttpResponse.BodyHandlers.discarding());
     assertEquals(response.statusCode(), code);
+  }
+
+  @DataProvider(name = "ResponseBody")
+  public Object[][] responseBody() {
+    return new String[][] {
+        {""},
+        {"Hello world"},
+        {"úñìÇóÐË"},
+        {"{\"key\": \"value\"}"},
+        {"<html><head></head><body></body></html>"},
+    };
+  }
+
+  @Test(dataProvider = "ResponseBody")
+  public void send_ReceiveBody_ContentMatches(String body) throws IOException {
+    stubFor(get("/").willReturn(ok(body)));
+    var client = HttpClient.newHttpClient();
+    var request = HttpRequest.newBuilder(URI.create(server.baseUrl())).build();
+    var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    assertEquals(response.body(), body);
+  }
+
+  @DataProvider(name = "Headers")
+  public Object[][] responseHeaders() {
+    // Content-Length must be specified, otherwise output is chunked,
+    // See: Chunked transfer encoding
+    return new Object[][] {
+        {Map.of(
+            "Access-Control-Allow-Origin", List.of("*"),
+            "Content-Length", List.of("0")
+        )},
+        {Map.of(
+            "Location", List.of("http://example.org"),
+            "Content-Length", List.of("0")
+        )},
+        {Map.of(
+           "Content-Type", List.of("text/plain; charset=utf-8"),
+           "Cache-Control", List.of("max-age=3600"),
+            "Content-Length", List.of("0")
+        )},
+        {Map.of(
+            "Connection", List.of("Keep"),
+            "Content-Length", List.of("321"),
+            "Content-Language", List.of("pl"),
+            "Server", List.of("WireMock")
+        )},
+        {Map.of(
+            "Last-Modified", List.of("Thu, 13 Apr 2023 14:21:38 GMT"),
+            "Content-Length", List.of("0")
+        )}
+    };
+  }
+
+  @Test(dataProvider = "Headers")
+  public void send_ReceiveHeaders_HeadersMatch(Map<String, List<String>> headersMap)
+      throws IOException {
+    var responseDef = ok();
+    headersMap.forEach((key, values) -> responseDef.withHeader(key, values.toArray(new String[1])));
+    var mapping = stubFor(get("/").willReturn(responseDef));
+    var client = HttpClient.newHttpClient();
+    var request = HttpRequest.newBuilder(URI.create(server.baseUrl())).build();
+    var response = client.send(request, HttpResponse.BodyHandlers.discarding());
+
+    var expected = new HashMap<>(headersMap);
+    // wire mock server adds those headers automatically
+    expected.put("Matched-Stub-Id", List.of(mapping.getId().toString()));
+    expected.put("Vary", List.of("Accept-Encoding, User-Agent"));
+    assertEquals(response.headers(), HttpHeaders.of(expected));
   }
 }
